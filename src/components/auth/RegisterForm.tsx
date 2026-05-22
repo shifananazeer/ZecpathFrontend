@@ -29,6 +29,9 @@ import {
 import { registerUser } from '../../services/authService';
 
 import type { UserRole } from '../../types/auth';
+import { motion, type Variants, useMotionValue, useSpring } from 'framer-motion';import { CheckCircle, Zap, Shield, TrendingUp } from 'lucide-react';
+
+import MagneticButton from '../../components/ui/MagneticButton';
 
 interface FormData {
   first_name: string;
@@ -77,7 +80,10 @@ export default function RegisterForm() {
     useState('');
 
   const inputClass =
-    'w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 backdrop-blur-md';
+  "w-full px-4 py-3 bg-white/10 border border-white/15 rounded-xl text-white placeholder-gray-400 text-sm " +
+  "backdrop-blur-md outline-none transition-all duration-200 " +
+  "focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20 focus:bg-white/15 " +
+  "hover:border-white/25";
 
   // Reusable error renderer
   const renderErrors = (
@@ -333,6 +339,12 @@ export default function RegisterForm() {
     setIsLoading(false);
   };
 
+  const handleRoleChange = (newRole: UserRole) => {
+  setRole(newRole);
+  setErrors({});
+  setSubmitError('');
+};
+
   const hasErrors =
     Object.values(errors).some(
       (err) =>
@@ -356,33 +368,41 @@ export default function RegisterForm() {
     <div>
       {/* Role Toggle */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <button
-          type="button"
-          onClick={() =>
-            setRole('CANDIDATE')
-          }
-          className={`py-2.5 rounded-xl font-medium ${
-            role === 'CANDIDATE'
-              ? 'bg-gradient-to-r from-blue-900 to-blue-600 text-white'
-              : 'bg-white/10 text-gray-300'
-          }`}
-        >
-          Job Seeker
-        </button>
+     <div className="relative flex p-1 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md overflow-hidden">
+  {/* Sliding background */}
+  <motion.div
+    layout
+    transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+    className="absolute top-1 bottom-1 w-1/2 rounded-lg bg-gradient-to-r from-blue-900 to-blue-600 shadow-lg"
+    style={{
+      left: role === 'CANDIDATE' ? '4px' : '50%',
+    }}
+  />
 
-        <button
-          type="button"
-          onClick={() =>
-            setRole('EMPLOYER')
-          }
-          className={`py-2.5 rounded-xl font-medium ${
-            role === 'EMPLOYER'
-              ? 'bg-gradient-to-r from-blue-900 to-blue-600 text-white'
-              : 'bg-white/10 text-gray-300'
-          }`}
-        >
-          Employer
-        </button>
+  <motion.button
+    type="button"
+    whileTap={{ scale: 0.97 }}
+    whileHover={{ scale: 1.02 }}
+   onClick={() => handleRoleChange('CANDIDATE')}
+    className={`relative z-10 flex-1 py-2.5 font-medium transition-colors ${
+      role === 'CANDIDATE' ? 'text-white' : 'text-gray-300'
+    }`}
+  >
+    Job Seeker
+  </motion.button>
+
+  <motion.button
+    type="button"
+    whileTap={{ scale: 0.97 }}
+    whileHover={{ scale: 1.02 }}
+    onClick={() => handleRoleChange('EMPLOYER')}
+    className={`relative z-10 flex-1 py-2.5 font-medium transition-colors ${
+      role === 'EMPLOYER' ? 'text-white' : 'text-gray-300'
+    }`}
+  >
+    Employer
+  </motion.button>
+</div>
       </div>
 
       {/* Backend Form Error */}
@@ -576,19 +596,14 @@ export default function RegisterForm() {
           )}
         </div>
 
-      <button
+     <MagneticButton
   type="submit"
-  disabled={
-    !isFormValid || isLoading
-  }
-  className="w-full bg-gradient-to-r from-blue-900 to-blue-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+  disabled={!isFormValid || isLoading}
+  className="w-full bg-gradient-to-r from-blue-900 to-blue-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2 font-medium"
 >
-  {isLoading
-    ? 'Creating...'
-    : 'Create Account'}
-
+  {isLoading ? 'Creating...' : 'Create Account'}
   <ArrowRight size={18} />
-</button>
+</MagneticButton>
 
 <div className="pt-4 text-center">
   <p className="text-sm text-gray-300">
