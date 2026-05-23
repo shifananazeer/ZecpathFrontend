@@ -1,6 +1,5 @@
 import AuthLayout from '../../layouts/AuthLayout';
 import OTPForm from '../../components/auth/OTPForm';
-import { useSearchParams } from "react-router-dom";
 
 export default function OTPPage() {
      

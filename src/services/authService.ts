@@ -77,3 +77,86 @@ export const resendOtpService =
     const response = await api.post('/auth/login/', credentials);
     return response.data;
 };
+
+export const forgotPassword = async (
+  email: string
+) => {
+  const response = await api.post(
+    '/auth/forgot-password/',
+    { email },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const verifyForgotPasswordOtpService =
+  async (data: {
+    email: string;
+    otp: string;
+  }) => {
+    try {
+      const response = await api.post(
+        '/auth/forgot-password/verify/',
+        data
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.log(
+        'VERIFY FORGOT OTP ERROR:',
+        error.response
+      );
+      throw error;
+    }
+  };
+
+  export const resendForgotPasswordOtpService =
+  async (email: string) => {
+    try {
+      const response = await api.post(
+        '/auth/forgot-password/',
+        { email }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.log(
+        'RESEND FORGOT OTP ERROR:',
+        error.response
+      );
+
+      throw error;
+    }
+  };
+
+/* =========================
+   RESET PASSWORD
+   POST /api/auth/forgot-password/reset/
+========================= */
+export const resetPasswordService =
+  async (data: {
+    email: string;
+    reset_token: string;
+    password: string;
+    confirm_password: string;
+  }) => {
+    try {
+      const response = await api.post(
+        '/auth/forgot-password/reset/',
+        data
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.log(
+        'RESET PASSWORD ERROR:',
+        error.response
+      );
+      throw error;
+    }
+  };

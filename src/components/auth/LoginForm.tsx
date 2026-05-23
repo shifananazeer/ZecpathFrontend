@@ -50,15 +50,30 @@ export default function LoginForm() {
         setError('Invalid login response');
       }
     } catch (err: any) {
-      setError(
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        'Login failed'
-      );
-    } finally {
+        console.log('LOGIN ERROR:', err.response?.data);
+
+     const status = err.response?.status;
+      const details = err.response?.data?.details;
+      const message = err.response?.data?.message;
+
+      if (
+    status === 401 &&
+    details === 'No active account found with the given credentials'
+  ) 
+     {
+       setError('Email or password is incorrect');
+    }  else {
+    setError(
+      message ||
+      details ||
+      'Login failed. Please try again.'
+    );
+  }
+  } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -99,7 +114,15 @@ export default function LoginForm() {
           </button>
         </div>
       </div>
-
+        {/* FORGOT PASSWORD */}
+        <div className="flex justify-end mt-2">
+          <a href="/forgot-password"
+            className="text-xs text-blue-300 hover:text-white transition"
+          >
+            Forgot Password?
+          </a>
+        </div>
+     
       {/* ERROR */}
       {error && (
         <p className="text-red-400 text-sm">{error}</p>

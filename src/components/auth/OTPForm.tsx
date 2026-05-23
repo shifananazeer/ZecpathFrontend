@@ -8,6 +8,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   verifyOtpService,
   resendOtpService,
+  verifyForgotPasswordOtpService,
+  resendForgotPasswordOtpService,
 } from '../../services/authService';
 
 
@@ -15,17 +17,15 @@ import {
 const OTP_LENGTH = 6;
 const RESEND_TIME = 60;
 
+type OTPMode = 'register' | 'forgot-password';
+
 const OTPForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-    const email = location.state?.email;
-
-
-  if (!email) {
-    navigate("/register");
-    return null;
-  }
+  const email = location.state?.email;
+  const mode: OTPMode =
+    location.state?.mode || 'register';
 
   const [otp, setOtp] = useState<string[]>(
     Array(OTP_LENGTH).fill('')
@@ -33,12 +33,24 @@ const OTPForm = () => {
 
   const [timer, setTimer] = useState(RESEND_TIME);
   const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
+  const [isResending, setIsResending] =
+    useState(false);
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRefs = useRef<
+    (HTMLInputElement | null)[]
+  >([]);
+
+  // redirect safely
+  useEffect(() => {
+    if (!email) {
+      navigate('/register');
+    }
+  }, [email, navigate]);
+
+  if (!email) return null;
 
   // countdown
   useEffect(() => {
@@ -51,34 +63,45 @@ const OTPForm = () => {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // handle input change
-  const handleChange = (value: string, index: number) => {
+  // OTP input
+  const handleChange = (
+    value: string,
+    index: number
+  ) => {
     const digit = value.replace(/\D/g, '');
 
     const newOtp = [...otp];
     newOtp[index] = digit.slice(-1);
     setOtp(newOtp);
 
-    // auto move next
-    if (digit && index < OTP_LENGTH - 1) {
+    if (
+      digit &&
+      index < OTP_LENGTH - 1
+    ) {
       inputRefs.current[index + 1]?.focus();
     }
 
     setError('');
   };
 
-  // backspace navigation
+  // backspace
   const handleKeyDown = (
     e: KeyboardEvent<HTMLInputElement>,
     index: number
   ) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+    if (
+      e.key === 'Backspace' &&
+      !otp[index] &&
+      index > 0
+    ) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  // VERIFY OTP
-  const handleVerify = async (e: React.FormEvent) => {
+  // VERIFY
+  const handleVerify = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
     const otpValue = otp.join('');
@@ -93,70 +116,106 @@ const OTPForm = () => {
     setSuccess('');
 
     try {
-const result = await verifyOtpService({
-  email,
-  otp: otpValue
-});
- console.log('OTP VERIFY RESULT:', result);
-    if (result?.message) {
-  setSuccess(result.message);
+      let result;
 
-  setTimeout(() => {
-    navigate('/login');
-  }, 1000);
+      if (mode === 'forgot-password') {
+        result =
+          await verifyForgotPasswordOtpService({
+            email,
+            otp: otpValue,
+          });
       } else {
-        setError(result.message || 'Invalid OTP');
-
-        // 🔥 clear OTP on error
-        setOtp(Array(OTP_LENGTH).fill(''));
-        inputRefs.current[0]?.focus();
+        result =
+          await verifyOtpService({
+            email,
+            otp: otpValue,
+          });
       }
-   } catch (err: any) {
-  const data = err.response?.data;
 
-  // 🔥 extract backend error properly
-  const backendError =
-    data?.details?.otp ||
-    data?.details?.email ||
-    data?.error ||
-    err.message ||
-    'Something went wrong';
+      if (result?.message) {
+        setSuccess(result.message);
 
-  setError(backendError);
+        setTimeout(() => {
+          if (
+            mode ===
+            'forgot-password'
+          ) {
+            navigate(
+              '/reset-password',
+              {
+                state: {
+                  email,
+                  resetToken:
+                    result.reset_token,
+                },
+              }
+            );
+          } else {
+            navigate('/login');
+          }
+        }, 1000);
+      }
+    } catch (err: any) {
+      const data =
+        err.response?.data;
 
-  // clear OTP fields
-  setOtp(Array(OTP_LENGTH).fill(''));
+      setError(
+        data?.details?.otp ||
+          data?.details?.email ||
+          data?.error ||
+          'Invalid OTP'
+      );
 
-  // focus first input again
-  inputRefs.current[0]?.focus();
-} finally {
-  setIsLoading(false);
-}
-  }
+      setOtp(
+        Array(OTP_LENGTH).fill('')
+      );
+      inputRefs.current[0]?.focus();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  // RESEND OTP
+  // RESEND
   const handleResend = async () => {
     setIsResending(true);
     setError('');
     setSuccess('');
 
     try {
-      const result = await resendOtpService(email);
+      let result;
 
-      if (result.success) {
-        setTimer(RESEND_TIME);
-
-        // 🔥 clear OTP on resend
-        setOtp(Array(OTP_LENGTH).fill(''));
-        inputRefs.current[0]?.focus();
-
-        setSuccess('OTP resent successfully');
+      if (
+        mode === 'forgot-password'
+      ) {
+        result =
+          await resendForgotPasswordOtpService(
+            email
+          );
       } else {
-        setError(result.message || 'Failed to resend OTP');
+        result =
+          await resendOtpService(
+            email
+          );
+      }
+
+      if (
+        result?.success ||
+        result?.message
+      ) {
+        setTimer(RESEND_TIME);
+        setOtp(
+          Array(OTP_LENGTH).fill('')
+        );
+        inputRefs.current[0]?.focus();
+        setSuccess(
+          'OTP resent successfully'
+        );
       }
     } catch (err: any) {
       setError(
-        err.response?.data?.message || 'Something went wrong'
+        err.response?.data
+          ?.message ||
+          'Failed to resend OTP'
       );
     } finally {
       setIsResending(false);

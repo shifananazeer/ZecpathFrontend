@@ -320,9 +320,10 @@ export default function RegisterForm() {
     state: {
       email: formData.email,
       message: result.message,
+      mode: 'register',
     },
   });
-
+  
     } else {
       if (result.errors) {
         setErrors(result.errors);
