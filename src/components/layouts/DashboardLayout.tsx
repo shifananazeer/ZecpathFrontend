@@ -34,7 +34,7 @@ export default function DashboardLayout({
         </div>
 
         {/* MAIN CONTENT (RIGHT SIDE OF SIDEBAR) */}
-        <main className="flex-1 lg:ml-32 px-4 sm:px-6 pb-24">
+      <main className="flex-1 lg:ml-36 lg:mt-20 px-8 sm:px-10 pb-24 animate-slide-in">
 
           {/* 👇 THIS WILL NOW APPEAR TOP RIGHT OF SIDEBAR */}
           {topContent}

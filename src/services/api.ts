@@ -1,47 +1,38 @@
-import axios from 'axios';
-import type {
-  AxiosError,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import axios from "axios";
+import type { AxiosError, InternalAxiosRequestConfig } from "axios";
 import {
   getAccessToken,
   getRefreshToken,
   setAccessToken,
   clearSession,
-} from '../utils/tokenStorage';
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  'http://127.0.0.1:8000/api';
-
-if (!API_BASE_URL) {
-  console.warn(
-    'VITE_API_BASE_URL is not set. API calls may fail.'
-  );
-}
+} from "../utils/tokenStorage";
 
 /* -------------------------------------------------- */
 /* Extended Axios Config */
 /* -------------------------------------------------- */
-interface RetryAxiosRequestConfig
-  extends InternalAxiosRequestConfig {
+interface CustomAxiosConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
+  skipAuth?: boolean;
+  token?: string;
 }
 
 /* -------------------------------------------------- */
 /* Axios Instance */
 /* -------------------------------------------------- */
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL:
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://127.0.0.1:8000/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 /* -------------------------------------------------- */
-/* Refresh Queue */
+/* Refresh State */
 /* -------------------------------------------------- */
 let isRefreshing = false;
+
 let failedQueue: {
   resolve: (token: string) => void;
   reject: (error: unknown) => void;
@@ -51,51 +42,46 @@ const processQueue = (
   error: unknown,
   token: string | null = null
 ) => {
-  failedQueue.forEach((promise) => {
-    if (error) {
-      promise.reject(error);
-    } else if (token) {
-      promise.resolve(token);
-    }
+  failedQueue.forEach((p) => {
+    if (error) p.reject(error);
+    else if (token) p.resolve(token);
   });
 
   failedQueue = [];
 };
 
 /* -------------------------------------------------- */
-/* Request Interceptor */
+/* REQUEST INTERCEPTOR */
 /* -------------------------------------------------- */
 api.interceptors.request.use(
-  (
-    config: InternalAxiosRequestConfig
-  ): InternalAxiosRequestConfig => {
-    const accessToken = getAccessToken();
+  (config: CustomAxiosConfig) => {
+    const token =
+      config.token ||
+      localStorage.getItem("access");
 
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
-  },
-  (error) => Promise.reject(error)
+  }
 );
 
 /* -------------------------------------------------- */
-/* Response Interceptor */
+/* RESPONSE INTERCEPTOR */
 /* -------------------------------------------------- */
 api.interceptors.response.use(
   (response) => response,
 
   async (error: AxiosError) => {
     const originalRequest =
-      error.config as RetryAxiosRequestConfig;
+      error.config as CustomAxiosConfig;
 
-    /* no request config */
     if (!originalRequest) {
       return Promise.reject(error);
     }
 
-    /* only handle 401 */
+    // ❌ only handle auth failures
     if (
       error.response?.status !== 401 ||
       originalRequest._retry
@@ -103,26 +89,19 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    /* login should fail normally */
+    // ❌ ignore login/refresh endpoints
     if (
-      originalRequest.url?.includes('/auth/login/')
-    ) {
-      return Promise.reject(error);
-    }
-
-    /* prevent refresh recursion */
-    if (
-      originalRequest.url?.includes('/auth/refresh/')
+      originalRequest.url?.includes("/auth/login/") ||
+      originalRequest.url?.includes("/auth/refresh/")
     ) {
       clearSession();
-      window.location.href = '/login';
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
 
     /* -------------------------------------------------- */
-    /* Queue requests while refresh is running */
+    /* QUEUE REQUESTS */
     /* -------------------------------------------------- */
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
@@ -143,21 +122,18 @@ api.interceptors.response.use(
 
     if (!refreshToken) {
       clearSession();
-      window.location.href = '/login';
       return Promise.reject(error);
     }
 
     try {
-      /* use raw axios -> avoid interceptor loop */
-      const response = await axios.post(
-        `${API_BASE_URL}/auth/refresh/`,
+      const { data } = await axios.post(
+        `${api.defaults.baseURL}/auth/refresh/`,
         {
           refresh: refreshToken,
         }
       );
 
-      const newAccessToken =
-        response.data.access;
+      const newAccessToken = data.access;
 
       setAccessToken(newAccessToken);
 
@@ -174,7 +150,6 @@ api.interceptors.response.use(
       processQueue(refreshError, null);
 
       clearSession();
-      window.location.href = '/login';
 
       return Promise.reject(refreshError);
     } finally {

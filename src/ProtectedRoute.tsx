@@ -1,12 +1,51 @@
-import { useAuth } from "./context/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 
-export default function ProtectedRoute({ children }: any) {
-  const { isAuthenticated } = useAuth();
+type UserRole =
+  | 'CANDIDATE'
+  | 'EMPLOYER'
+  | 'ADMIN';
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+interface ProtectedRouteProps {
+  allowedRoles?: UserRole[];
+}
+
+export default function ProtectedRoute({
+  allowedRoles,
+}: ProtectedRouteProps) {
+  const {
+    isAuthenticated,
+    user,
+    isLoading,
+  } = useAuth();
+
+  if (isLoading) {
+    return null;
   }
 
-  return children;
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  if (
+    allowedRoles &&
+    user &&
+    !allowedRoles.includes(
+      user.role
+    )
+  ) {
+    return (
+      <Navigate
+        to="/unauthorized"
+        replace
+      />
+    );
+  }
+
+  return <Outlet />;
 }

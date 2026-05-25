@@ -1,12 +1,17 @@
 import DashboardLayout from "../../components/layouts/DashboardLayout";
 import DashboardGreeting from "../../components/dashboard/DashboardGreeting";
+import { useAuth } from "../../context/AuthContext";
 
 export const CandidateDashboard = () => {
+  const { user } = useAuth();
+
   return (
     <DashboardLayout
       active="Dashboard"
       topContent={
-        <DashboardGreeting userName="Alex Johnson" />
+        <DashboardGreeting
+          userName={user?.first_name || "User"}
+        />
       }
     >
       {/* MAIN CONTENT */}

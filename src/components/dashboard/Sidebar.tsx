@@ -10,6 +10,7 @@ import {
   Bell,
   User,
   PlusSquare,
+  LogOut,
 } from 'lucide-react';
 
 type NavItem = {
@@ -23,13 +24,13 @@ interface SidebarProps {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'Jobs', icon: Briefcase, path: '/dashboard/jobs' },
-  { label: 'Applications', icon: FileText, path: '/dashboard/applications' },
-  { label: 'Post', icon: PlusSquare, path: '/dashboard/post' },
-  { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages' },
-  { label: 'Alerts', icon: Bell, path: '/dashboard/alerts' },
-  { label: 'Profile', icon: User, path: '/dashboard/profile' },
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/candidate/dashboard' },
+  { label: 'Jobs', icon: Briefcase, path: '/candidate/jobs' },
+  { label: 'Applications', icon: FileText, path: '/candidate/applications' },
+  { label: 'Post', icon: PlusSquare, path: '/candidate/post' },
+  { label: 'Messages', icon: MessageSquare, path: '/candidate/messages' },
+  { label: 'Alerts', icon: Bell, path: '/candidate/alerts' },
+  { label: 'Profile', icon: User, path: '/candidate/profile' },
 ];
 
 export default function Sidebar({
@@ -37,6 +38,42 @@ export default function Sidebar({
 }: SidebarProps) {
   const router = useNavigate();
 
+
+    const handleLogout = async () => {
+    try {
+      // optional API call
+      await fetch(
+        'https://api.zecpath.com/api/auth/logout/',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json',
+            Authorization: `Bearer ${localStorage.getItem(
+              'accessToken'
+            )}`,
+          },
+        }
+      );
+
+      // clear local data
+      localStorage.removeItem(
+        'accessToken'
+      );
+      localStorage.removeItem(
+        'refreshToken'
+      );
+      localStorage.removeItem('user');
+
+      // redirect
+      router('/login');
+    } catch (error) {
+      console.error(
+        'Logout failed:',
+        error
+      );
+    }
+  };
   return (
     <aside
       className="hidden lg:flex fixed left-6 top-24 z-30 flex-col w-24 rounded-3xl
@@ -75,6 +112,29 @@ export default function Sidebar({
           );
         })}
       </nav>
+        {/* Logout button */}
+      <div className="p-4 border-t border-white/10 relative">
+        <motion.button
+          whileHover={{
+            scale: 1.05,
+            y: -1,
+          }}
+          whileTap={{
+            scale: 0.98,
+          }}
+          onClick={handleLogout}
+          className="flex h-14 w-full flex-col items-center
+          justify-center rounded-2xl
+          text-red-400 hover:text-white
+          hover:bg-red-500/15
+          transition-all duration-300"
+        >
+          <LogOut size={18} />
+          <span className="mt-1 text-[10px]">
+            Logout
+          </span>
+        </motion.button>
+      </div>
     </aside>
   );
 }

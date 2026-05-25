@@ -1,49 +1,60 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
+
 import RegisterForm from './pages/auth/RegisterPage';
 import LoginPage from './pages/auth/LoginPage';
 import OTPPage from './pages/auth/OTPPage';
 import VerifyIdentity from './components/auth/VerifyIdentity';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+
 import { CandidateDashboard } from './pages/Candidate/CandidateDashboard';
+import { Profile } from './pages/Candidate/Profile';
+
+import ProtectedRoute from './ProtectedRoute';
+
 function App() {
-    return (
-        <BrowserRouter>
-            <Routes>
-                {/* Default route */}
-                <Route
-                    path="/"
-                    element={<Navigate to="/signup" replace />}
-                />
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={   <Navigate to="/signup"replace/> } />
 
-                {/* Register */}
-                <Route
-                    path="/signup"
-                    element={<RegisterForm />}
-                />
-                 <Route
-                    path="/login"
-                    element={<LoginPage />}
-                />
-                 <Route
-                    path="/verify-otp"
-                    element={<OTPPage />}
-                />
+        {/* Public Routes */}
+        <Route path="/signup" element={<RegisterForm />} />
 
-                {/* <Route path="*" element={<Navigate to="/signup" replace />} /> */}
+        <Route path="/login" element={<LoginPage />} />
 
-                <Route path="/verifyIdentity" element={<VerifyIdentity />} />
+        <Route path="/verify-otp" element={<OTPPage />} />
 
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verifyIdentity"  element={<VerifyIdentity />}/>
 
+        <Route path="/forgot-password" element={   <ForgotPasswordPage /> } />
 
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/reset-password" element={   <ResetPasswordPage /> } />
 
-                <Route path="/candidate/dashboard" element={<CandidateDashboard />} />
-            </Routes>
-            
-        </BrowserRouter>
-    );
+        {/* Protected Routes */}
+      <Route element={<ProtectedRoute allowedRoles={['CANDIDATE']} />}>
+  <Route path="/candidate/dashboard" element={<CandidateDashboard />} />
+  <Route path="/candidate/profile" element={<Profile />} />
+</Route>
+
+        {/* Fallback */}
+        {/* <Route
+          path="*"
+          element={
+            <Navigate
+              to="/signup"
+              replace
+            />
+          }
+        /> */}
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
