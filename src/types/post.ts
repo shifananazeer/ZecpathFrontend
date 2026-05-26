@@ -23,3 +23,9 @@ export interface Post {
   created_at: string;
   updated_at: string;
 }
+
+export interface CreatePostPayload {
+  content: string;
+  visibility: "public" | "private" | "connections";
+  image?: File | null;
+}

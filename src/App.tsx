@@ -17,6 +17,7 @@ import { Profile } from './pages/Candidate/Profile';
 
 import ProtectedRoute from './ProtectedRoute';
 import { Employer } from './pages/Candidate/Employer';
+import { PostPage } from './pages/Candidate/PostPage';
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
   <Route path="/candidate/dashboard" element={<CandidateDashboard />} />
   <Route path="/candidate/profile" element={<Profile />} />
   <Route path="/candidate/employers" element={<Employer />} />
+  <Route path='/candidate/post' element={<PostPage/>}/>
 </Route>
 
         {/* Fallback */}
