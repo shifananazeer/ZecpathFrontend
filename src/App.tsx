@@ -16,6 +16,7 @@ import { CandidateDashboard } from './pages/Candidate/CandidateDashboard';
 import { Profile } from './pages/Candidate/Profile';
 
 import ProtectedRoute from './ProtectedRoute';
+import { Employer } from './pages/Candidate/Employer';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
       <Route element={<ProtectedRoute allowedRoles={['CANDIDATE']} />}>
   <Route path="/candidate/dashboard" element={<CandidateDashboard />} />
   <Route path="/candidate/profile" element={<Profile />} />
+  <Route path="/candidate/employers" element={<Employer />} />
 </Route>
 
         {/* Fallback */}

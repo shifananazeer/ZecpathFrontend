@@ -1,4 +1,6 @@
 import api from "./api";
+import type { EmployerResponse  }  from "../types/candidates";
+
 
 export const fetchUser = async ()  => {
     try {
@@ -22,3 +24,30 @@ export const updateCandidateProfile = async (
 
   return response.data;
 };
+
+
+
+export const getEmployers = async (
+  search = "",
+  sector = "",
+  verified = "",
+  cursor = ""
+) => {
+  const params = new URLSearchParams();
+
+  if (search) params.append("search", search);
+  if (sector) params.append("sector", sector);
+  if (verified)
+    params.append(
+      "is_verified_company",
+      verified
+    );
+  if (cursor) params.append("cursor", cursor);
+
+  const res = await api.get<EmployerResponse>(
+    `/profiles/employers/?${params.toString()}`
+  );
+
+  return res.data;
+};
+

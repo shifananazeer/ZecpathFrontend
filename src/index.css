@@ -32,3 +32,44 @@
 .animate-slide-in {
   animation: slideIn 0.5s ease-out both;
 }
+
+
+/* Dark custom scrollbar */
+.custom-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #475569 #0f172a;
+}
+
+/* Chrome / Edge / Safari */
+.custom-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 999px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    #334155,
+    #475569
+  );
+  border-radius: 999px;
+  border: 2px solid #0f172a;
+  transition: all 0.3s ease;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #6366f1,
+    #4f46e5
+  );
+}
+
+.custom-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}

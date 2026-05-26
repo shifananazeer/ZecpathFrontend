@@ -11,6 +11,7 @@ import {
   User,
   PlusSquare,
   LogOut,
+  Building2,
 } from 'lucide-react';
 
 type NavItem = {
@@ -26,9 +27,10 @@ interface SidebarProps {
 const navItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/candidate/dashboard' },
   { label: 'Jobs', icon: Briefcase, path: '/candidate/jobs' },
+  { label: 'Companies',  icon: Building2, path: '/candidate/employers' },
   { label: 'Applications', icon: FileText, path: '/candidate/applications' },
   { label: 'Post', icon: PlusSquare, path: '/candidate/post' },
-  { label: 'Messages', icon: MessageSquare, path: '/candidate/messages' },
+  // { label: 'Messages', icon: MessageSquare, path: '/candidate/messages' },
   { label: 'Alerts', icon: Bell, path: '/candidate/alerts' },
   { label: 'Profile', icon: User, path: '/candidate/profile' },
 ];

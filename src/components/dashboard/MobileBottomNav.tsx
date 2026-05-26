@@ -7,6 +7,8 @@ import {
   MessageSquare,
   UserCircle,
   PlusSquare,
+  Building2,
+  Bell,
 } from 'lucide-react';
 
 type MobileBottomNavProps = {
@@ -17,26 +19,41 @@ const navItems = [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
+    path: '/candidate/dashboard',
   },
   {
     label: 'Jobs',
     icon: Briefcase,
+    path: '/candidate/jobs',
+  },
+  {
+    label: 'Companies',
+    icon: Building2,
+    path: '/candidate/employers',
   },
   {
     label: 'Applications',
     icon: FileText,
+    path: '/candidate/applications',
   },
-  {
-    label: 'Messages',
-    icon: MessageSquare,
-  },
+  // {
+  //   label: 'Messages',
+  //   icon: MessageSquare,
+  // },
    {
     label: 'Post',
     icon: PlusSquare,
+    path: '/candidate/post',
+  },
+  {
+    label: 'Alerts',
+    icon: Bell,
+    path: '/candidate/alerts',
   },
   {
     label: 'Profile',
     icon: UserCircle,
+    path: '/candidate/profile',
   },
 ];
 
