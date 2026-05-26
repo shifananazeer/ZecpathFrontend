@@ -1,5 +1,10 @@
 import axios from "axios";
-import type { AxiosError, InternalAxiosRequestConfig } from "axios";
+import type {
+  AxiosError,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from "axios";
+
 import {
   getAccessToken,
   getRefreshToken,
@@ -7,30 +12,21 @@ import {
   clearSession,
 } from "../utils/tokenStorage";
 
-/* -------------------------------------------------- */
-/* Extended Axios Config */
-/* -------------------------------------------------- */
-interface CustomAxiosConfig extends InternalAxiosRequestConfig {
+export interface CustomAxiosConfig extends AxiosRequestConfig {
   _retry?: boolean;
   skipAuth?: boolean;
   token?: string;
 }
 
-/* -------------------------------------------------- */
-/* Axios Instance */
-/* -------------------------------------------------- */
 const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_BASE_URL ||
-    "http://127.0.0.1:8000/api",
+    "https://api.zecpath.com/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-/* -------------------------------------------------- */
-/* Refresh State */
-/* -------------------------------------------------- */
 let isRefreshing = false;
 
 let failedQueue: {
@@ -38,10 +34,7 @@ let failedQueue: {
   reject: (error: unknown) => void;
 }[] = [];
 
-const processQueue = (
-  error: unknown,
-  token: string | null = null
-) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((p) => {
     if (error) p.reject(error);
     else if (token) p.resolve(token);
@@ -50,14 +43,14 @@ const processQueue = (
   failedQueue = [];
 };
 
-/* -------------------------------------------------- */
-/* REQUEST INTERCEPTOR */
-/* -------------------------------------------------- */
+// ✅ REQUEST INTERCEPTOR
 api.interceptors.request.use(
-  (config: CustomAxiosConfig) => {
-    const token =
-      config.token ||
-      localStorage.getItem("access");
+  (config: InternalAxiosRequestConfig & CustomAxiosConfig) => {
+    if (config.skipAuth) return config;
+
+    const token = config.token || getAccessToken();
+
+    config.headers = config.headers ?? {};
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -67,48 +60,39 @@ api.interceptors.request.use(
   }
 );
 
-/* -------------------------------------------------- */
-/* RESPONSE INTERCEPTOR */
-/* -------------------------------------------------- */
+// ✅ RESPONSE INTERCEPTOR
 api.interceptors.response.use(
   (response) => response,
 
   async (error: AxiosError) => {
     const originalRequest =
-      error.config as CustomAxiosConfig;
+      error.config as (InternalAxiosRequestConfig & CustomAxiosConfig) | undefined;
 
-    if (!originalRequest) {
+    if (!originalRequest) return Promise.reject(error);
+
+    if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
-    // ❌ only handle auth failures
-    if (
-      error.response?.status !== 401 ||
-      originalRequest._retry
-    ) {
-      return Promise.reject(error);
-    }
-
-    // ❌ ignore login/refresh endpoints
-    if (
+    const isPublicRoute =
       originalRequest.url?.includes("/auth/login/") ||
-      originalRequest.url?.includes("/auth/refresh/")
-    ) {
+      originalRequest.url?.includes("/auth/register/") ||
+      originalRequest.url?.includes("/auth/refresh/") ||
+      originalRequest.url?.includes("/auth/verify-otp/");
+
+    if (isPublicRoute) {
       clearSession();
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
 
-    /* -------------------------------------------------- */
-    /* QUEUE REQUESTS */
-    /* -------------------------------------------------- */
+    // queue requests during refresh
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({
           resolve: (token: string) => {
-            originalRequest.headers.Authorization =
-              `Bearer ${token}`;
+            originalRequest.headers.Authorization = `Bearer ${token}`;
             resolve(api(originalRequest));
           },
           reject,
@@ -137,20 +121,14 @@ api.interceptors.response.use(
 
       setAccessToken(newAccessToken);
 
-      api.defaults.headers.common.Authorization =
-        `Bearer ${newAccessToken}`;
-
-      originalRequest.headers.Authorization =
-        `Bearer ${newAccessToken}`;
-
       processQueue(null, newAccessToken);
+
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
       return api(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError, null);
-
       clearSession();
-
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

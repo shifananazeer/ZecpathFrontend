@@ -2,21 +2,36 @@ import api from './api';
 import type { RegisterPayload , ApiResponse   } from '../types/auth';
 
 
-export const registerUser = async (payload: RegisterPayload) => {
+import type { CustomAxiosConfig } from "./api"; // export it first
+
+export const registerUser = async (
+  payload: RegisterPayload
+) => {
   try {
-    const response = await api.post('/auth/register/', payload);
+    const config: CustomAxiosConfig = {
+      skipAuth: true,
+    };
+
+    const response = await api.post(
+      "/auth/register/",
+      payload,
+      config
+    );
 
     console.log("REGISTER SUCCESS:", response.data);
-
     return response.data;
   } catch (error: any) {
-    console.log("REGISTER FAILED STATUS:", error.response?.status);
-    console.log("REGISTER FAILED DATA:", error.response?.data);
-
-    throw error; // important so UI can handle it
+    console.log(
+      "REGISTER FAILED STATUS:",
+      error.response?.status
+    );
+    console.log(
+      "REGISTER FAILED DATA:",
+      error.response?.data
+    );
+    throw error;
   }
 };
-
 
 export const verifyOtpService = async (payload: {
   email: string;

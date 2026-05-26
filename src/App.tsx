@@ -18,6 +18,8 @@ import { Profile } from './pages/Candidate/Profile';
 import ProtectedRoute from './ProtectedRoute';
 import { Employer } from './pages/Candidate/Employer';
 import { PostPage } from './pages/Candidate/PostPage';
+import { EmployerDashbaord } from './pages/employer/EmployerDashboard';
+import { Notification } from './pages/Candidate/NotificationPage';
 
 function App() {
   return (
@@ -44,7 +46,11 @@ function App() {
   <Route path="/candidate/profile" element={<Profile />} />
   <Route path="/candidate/employers" element={<Employer />} />
   <Route path='/candidate/post' element={<PostPage/>}/>
+  <Route path='/notifications' element={<Notification/>}/>
 </Route>
+ <Route element={<ProtectedRoute allowedRoles={['EMPLOYER']} />}>
+ <Route path='/employer/dashboard' element={<EmployerDashbaord/>}/>
+ </Route>
 
         {/* Fallback */}
         {/* <Route

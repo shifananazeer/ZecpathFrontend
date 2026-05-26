@@ -8,16 +8,28 @@ import {
   ChevronDown,
   Menu,
 } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   userName: string;
+  role?: "CANDIDATE" | "EMPLOYER" | "ADMIN";
   onMenuClick?: () => void;
 }
 
+
+
 export default function Header({
   userName,
+  role,
   onMenuClick,
 }: HeaderProps) {
+const navigate = useNavigate();
+  const roleLabel =
+  role === "EMPLOYER"
+    ? "Employer"
+    : role === "ADMIN"
+    ? "Admin"
+    : "Job Seeker";
   return (
     <header className="sticky top-0 z-40 h-20 w-full border-b border-white/5 bg-[#0C1225] backdrop-blur-xl shadow-sm">
       <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -70,13 +82,13 @@ export default function Header({
           </motion.button> */}
 
           {/* BELL */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            className="relative rounded-2xl bg-white/5 p-3 text-slate-300 hover:bg-white/10"
-          >
-            <Bell size={18} />
+         <motion.button
+           onClick={() => navigate("/notifications")}
+          className="relative rounded-2xl bg-white/5 p-3 text-slate-300 hover:bg-white/10"
+           >
+           <Bell size={18} />
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
-          </motion.button>
+            </motion.button>
 
           {/* USER */}
           <motion.button
@@ -89,9 +101,9 @@ export default function Header({
               <p className="text-sm font-medium text-white">
                 {userName}
               </p>
-              <p className="text-xs text-slate-400">
-                Job Seeker
-              </p>
+             <p className="text-xs text-slate-400">
+                {roleLabel}
+               </p>
             </div>
 
             <ChevronDown size={16} className="text-slate-400" />

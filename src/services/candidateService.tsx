@@ -51,3 +51,7 @@ export const getEmployers = async (
   return res.data;
 };
 
+export const getNotifications = async () => {
+  const res = await api.get("profiles/notifications/");
+  return res.data;
+};

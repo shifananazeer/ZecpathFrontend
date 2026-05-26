@@ -286,59 +286,63 @@ export default function RegisterForm() {
   };
 
   const handleSubmit = async (
-    e: FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
+  e: FormEvent<HTMLFormElement>
+) => {
+  e.preventDefault();
 
-    setErrors({});
-    setSubmitError('');
+  setErrors({});
+  setSubmitError('');
 
-    if (!validateForm()) return;
+  if (!validateForm()) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
+  try {
     const payload = {
       ...(role === 'CANDIDATE' && {
-        first_name:
-          formData.first_name,
-        last_name:
-          formData.last_name,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
       }),
       email: formData.email,
       password: formData.password,
-      phone_number:
-        formData.phone_number,
+      phone_number: formData.phone_number,
       location: formData.location,
-       role
+      role,
     };
 
-    const result =
-      await registerUser(payload);
+    const result = await registerUser(payload);
 
-   if (result?.message) {
-  navigate('/verify-otp', {
-    state: {
-      email: formData.email,
-      message: result.message,
-      mode: 'register',
-    },
-  });
-  
-    } else {
-      if (result.errors) {
-        setErrors(result.errors);
-        
-      }
+    if (result?.message) {
+      navigate('/verify-otp', {
+        state: {
+          email: formData.email,
+          message: result.message,
+          mode: 'register',
+        },
+      });
+    }
+  } catch (error: any) {
+    const backendError = error?.response?.data;
 
-      if (result.formError) {
-        setSubmitError(
-          result.formError
-        );
-      }
+    console.log("BACKEND ERROR:", backendError);
+
+    // field-level errors
+    if (backendError?.details) {
+      setErrors(
+        backendError.details as ErrorState
+      );
     }
 
+    // generic form error
+    if (backendError?.error) {
+      setSubmitError(
+        backendError.error
+      );
+    }
+  } finally {
     setIsLoading(false);
-  };
+  }
+};
 
   const handleRoleChange = (newRole: UserRole) => {
   setRole(newRole);

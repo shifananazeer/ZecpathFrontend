@@ -3,7 +3,7 @@
 import Sidebar from "../../components/dashboard/Sidebar";
 import Header from "../../components/dashboard/Header";
 import MobileBottomNav from "../../components/dashboard/MobileBottomNav";
-
+import { useAuth } from "../../context/AuthContext";
 interface Props {
   children: React.ReactNode;
   active?: string;
@@ -14,15 +14,21 @@ interface Props {
 export default function DashboardLayout({
   children,
   active = "Dashboard",
-  userName = "Alex Johnson",
+  userName,
   topContent,
 }: Props) {
+   const { user } = useAuth();
+     const role = user?.role || "CANDIDATE"// 👈 IMPORTANT
+
+  if (!role) return null;
+  
+
   return (
     <div className="min-h-screen bg-[#0C1225] text-white">
 
       {/* HEADER */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <Header userName={userName} />
+       <Header userName={user?.first_name || user?.email ||"user"} role={role} />
       </div>
 
       {/* BODY AREA BELOW HEADER */}
@@ -30,7 +36,7 @@ export default function DashboardLayout({
 
         {/* SIDEBAR (fixed left) */}
         <div className="hidden lg:block w-32 fixed left-0 top-20 bottom-0">
-          <Sidebar active={active} />
+         <Sidebar active={active} role={role} />
         </div>
 
         {/* MAIN CONTENT (RIGHT SIDE OF SIDEBAR) */}

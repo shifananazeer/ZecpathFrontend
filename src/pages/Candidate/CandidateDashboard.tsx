@@ -32,7 +32,7 @@ export const CandidateDashboard = () => {
     <DashboardLayout
       active="Dashboard"
       topContent={
-        <DashboardGreeting userName={user?.first_name || "User"} />
+        <DashboardGreeting userName={user?.first_name || user?.email ||"user"} />
       }
     >
       {/* OUTER WRAPPER → ONE PAGE SCROLL */}
