@@ -17,11 +17,7 @@ export const getComments = async (postId: number) => {
 
 //add comment to a post
 
-export const addComment = async (
-  postId: number,
-  content: string,
-  parent?: number
-) => {
+export const addComment = async (postId: number,content: string,parent?: number) => {
   const res = await api.post( `/profiles/feed/${postId}/comments/`,
     {
       content,
@@ -33,20 +29,13 @@ export const addComment = async (
 
 //delete comment
 
-export const deleteComment = async (
-  postId: number,
-  commentId: number
-) => {
+export const deleteComment = async (postId: number, commentId: number) => {
  return api.delete(`/profiles/feed/${postId}/comments/${commentId}/` );
 };
 
 //add recation to comment
 
-export const reactToComment = async (
-  postId: number,
-  commentId: number,
-  reaction: string
-) => {
+export const reactToComment = async ( postId: number, commentId: number, reaction: string) => {
   return api.post( `/profiles/feed/${postId}/comments/${commentId}/react/`,
     {
      reaction_type: reaction,
@@ -56,14 +45,8 @@ export const reactToComment = async (
 
 //Remove reaction from comment
 
-export const removeCommentReaction =
-  async (
-    postId: number,
-    commentId: number
-  ) => {
-    return api.delete(
-      `profiles/feed/${postId}/comments/${commentId}/react/`
-    );
+export const removeCommentReaction =async ( postId: number, commentId: number ) => {
+    return api.delete( `profiles/feed/${postId}/comments/${commentId}/react/` );
   };
 
   //add reaction to a post
@@ -88,13 +71,8 @@ export const removeCommentReaction =
 
 //remove  reaction from post
 
-export const removeReaction =
-  async (postId: number) => {
-    const response =
-      await api.delete(
-        `/profiles/feed/${postId}/react/`
-      );
-
+export const removeReaction =async (postId: number) => {
+    const response =await api.delete(  `/profiles/feed/${postId}/react/` );
     return response.data;
   };
 
